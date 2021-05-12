@@ -175,7 +175,7 @@ def move_ant(ant, graph, alpha, beta):
 
 
 
-def calculate_cost(g, params, h=1, sign=-1, T=50):
+def calculate_cost(g, h, sign, T, params):
     """
     Calculates the cost function of the solution.
     The cost function is the sum of (rise_time, settling_time, maximum_peak_overshoot)
@@ -185,17 +185,17 @@ def calculate_cost(g, params, h=1, sign=-1, T=50):
         g : control.TransferFunction
             The transfer function of the plant
 
-        params : dict_of_float.
-            The PID controller parameters: {"p": k_p, "i": k_i, "d": k_d)}
-
-        h : control.TransferFunction, default=1 (i.e. unity feedback)
+        h : control.TransferFunction.
             The transfer function of the feedback.
 
-        sign : int, default=-1.
+        sign : int.
             -1 indicates negative feedback and 1 indicates positive feedback.
 
-        T : float, default = 50.
+        T : float.
             The duration of the simulation.
+
+        params : dict_of_float.
+            The PID controller parameters: {"p": k_p, "i": k_i, "d": k_d)}
 
     Returns
     -------

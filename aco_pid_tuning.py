@@ -1,7 +1,7 @@
 from utils import Ant, Graph, initialize_ants, move_ant, calculate_cost, update_local_phermone, update_global_phermone, get_best_solution
 from zn_pid_tuning import zn_pid_tune
 
-def aco_pid_tune(g, n_ants, n_iterations, graph_size, alpha=0.5, beta=0.5, rho=0.5):
+def aco_pid_tune(g, h=1, sign=-1, T=50, n_ants=100, n_iterations=50, graph_size=100, alpha=0.5, beta=0.5, rho=0.5):
     """
     Tunes the parameters of a PID controller using Ant Colony Optimization algorithm.
 
@@ -9,11 +9,20 @@ def aco_pid_tune(g, n_ants, n_iterations, graph_size, alpha=0.5, beta=0.5, rho=0
     ----------
         g : control.TransferFunction.
 
+        h : control.TransferFunction, default=1 (i.e. unity feedback)
+            The transfer function of the feedback.
+
+        sign : int, default=-1.
+            -1 indicates negative feedback and 1 indicates positive feedback.
+
         n_ants : int.
 
         n_iterations : int.
 
         graph_size : int.
+
+        alpha, beta : float, float.
+            The constants used in computing the p values.
 
         rho : float, = ]0, 1], default: 0.5.
             The evaporation rate.
@@ -30,7 +39,7 @@ def aco_pid_tune(g, n_ants, n_iterations, graph_size, alpha=0.5, beta=0.5, rho=0
 
     # Initialize the besst and the min_cost
     best_solution = {"p": k_p_mean, "i": k_i_mean, "d": k_d_mean}
-    min_cost = calculate_cost(g, {"p": k_p_mean, "i": k_i_mean, "d": k_d_mean})
+    min_cost = calculate_cost(g, h, sign, T, {"p": k_p_mean, "i": k_i_mean, "d": k_d_mean})
     print(best_solution)
     print(f"Total Cost: {min_cost[0]}")
     print(f"Maximum Peak Overshoot: {min_cost[1]}")
@@ -48,7 +57,7 @@ def aco_pid_tune(g, n_ants, n_iterations, graph_size, alpha=0.5, beta=0.5, rho=0
             move_ant(ant, graph, alpha, beta)
 
             # Compute the path cost and update the best ant
-            ant.cost = calculate_cost(g, ant.path["k"])[0]
+            ant.cost = calculate_cost(g, h, sign, T, ant.path["k"])[0]
             if ant.cost < best_ant.cost:
                 best_ant = ant
 
@@ -63,7 +72,7 @@ def aco_pid_tune(g, n_ants, n_iterations, graph_size, alpha=0.5, beta=0.5, rho=0
         if best_ant.cost < min_cost:
             best_solution = best_ant.path["k"]
             print(best_solution)
-            cost_vec = calculate_cost(g, best_ant.path["k"])
+            cost_vec = calculate_cost(g, h, sign, T, best_ant.path["k"])
             print(f"Total Cost: {cost_vec[0]}")
             print(f"Maximum Peak Overshoot: {cost_vec[1]}")
             print(f"Rise Time: {cost_vec[2]}")

@@ -29,7 +29,9 @@ def aco_pid_tune(g, h=1, sign=-1, T=50, n_ants=100, n_iterations=50, graph_size=
 
     Returns
     -------
-        tuple_of_float.
+        dict_of_float -> {"p": float, "i": float, "d": float}.
+        Represents the gain values for p-controller, i-controller and d-controller
+        respectively.
     """
     ants = initialize_ants(n_ants)
 
@@ -37,14 +39,9 @@ def aco_pid_tune(g, h=1, sign=-1, T=50, n_ants=100, n_iterations=50, graph_size=
     k_p_mean, k_i_mean, k_d_mean = zn_pid_tune(g)
     graph = Graph(graph_size, k_p_mean, k_i_mean, k_d_mean)
 
-    # Initialize the besst and the min_cost
+    # Initialize the best solution and the min_cost
     best_solution = {"p": k_p_mean, "i": k_i_mean, "d": k_d_mean}
     min_cost = calculate_cost(g, h, sign, T, {"p": k_p_mean, "i": k_i_mean, "d": k_d_mean})
-    print(best_solution)
-    print(f"Total Cost: {min_cost[0]}")
-    print(f"Maximum Peak Overshoot: {min_cost[1]}")
-    print(f"Rise Time: {min_cost[2]}")
-    print(f"Settling Time (2%): {min_cost[3]}")
     min_cost = min_cost[0]
 
     for i in range(n_iterations):
@@ -64,19 +61,18 @@ def aco_pid_tune(g, h=1, sign=-1, T=50, n_ants=100, n_iterations=50, graph_size=
             # Update the phermone locally
             update_local_phermone(ant, graph, min_cost)
 
-
         # Update the global phermone levels, apply evaporation and reinforce the path of the best ant
         update_global_phermone(best_ant, graph, rho, min_cost)
 
         # Update the min_cost and the best solution
         if best_ant.cost < min_cost:
             best_solution = best_ant.path["k"]
-            print(best_solution)
+            # print(best_solution)
             cost_vec = calculate_cost(g, h, sign, T, best_ant.path["k"])
-            print(f"Total Cost: {cost_vec[0]}")
-            print(f"Maximum Peak Overshoot: {cost_vec[1]}")
-            print(f"Rise Time: {cost_vec[2]}")
-            print(f"Settling Time (2%): {cost_vec[3]}")
+            # print(f"Total Cost: {cost_vec[0]}")
+            # print(f"Maximum Peak Overshoot: {cost_vec[1]}")
+            # print(f"Rise Time: {cost_vec[2]}")
+            # print(f"Settling Time (2%): {cost_vec[3]}")
             min_cost = best_ant.cost
 
     return best_solution

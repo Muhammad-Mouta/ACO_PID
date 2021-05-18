@@ -76,11 +76,11 @@ class Graph:
         handle_inf(self.N["p"])
 
         # Calculate the desirability of the edges going to the integral gains
-        self.N["i"] = np.abs(np.ones((graph_size, graph_size)) / (self.k["i"].T - k_i_mean))
+        self.N["i"] = np.abs(np.ones((1, graph_size)) / (self.k["i"].T - k_i_mean))
         handle_inf(self.N["i"])
 
         # Calculate the desirability of the edges going to the deraivative gains
-        self.N["d"] = np.abs(np.ones((graph_size, graph_size)) / (self.k["d"].T - k_d_mean))
+        self.N["d"] = np.abs(np.ones((1, graph_size)) / (self.k["d"].T - k_d_mean))
         handle_inf(self.N["d"])
 
 #------------------------------------------------------------------------------
@@ -161,12 +161,9 @@ def move_ant(ant, graph, alpha, beta):
             "k" : dict()}
     for j in J:
         t_alpha = np.power(graph.T[j][i,:], alpha)
-        n_beta = np.power(graph.N[j][i,:], beta)
+        n_beta = np.power(graph.N[j][0,:], beta)
         p_num = t_alpha * n_beta
-        # print(graph.T[j][i, :])
         p_denom = np.sum(p_num)
-        # print(p_num)
-        # print(p_denom)
         p = (p_num / p_denom).reshape(-1, )
         i = int(np.random.choice(np.arange(p.size), p=p))
         path["i"][j] = i
@@ -216,7 +213,7 @@ def calculate_cost(g, h, sign, T, params):
     s = control.TransferFunction.s
     k_p, k_i, k_d = params["p"], params["i"], params["d"]
     g_c = k_p + (k_i / s) + (k_d * s)
-    t, yout = control.step_response(control.feedback(control.series(g, g_c), h), T=T)
+    t, yout = control.step_response(control.feedback(control.series(g, g_c), h, sign), T=T)
 
     info = step_info(t, yout)
     return (sum(info), ) + info
